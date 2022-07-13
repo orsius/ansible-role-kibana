@@ -1,0 +1,15 @@
+galaxy_info:
+  author: Rémi Laurent
+  maintainer: Gautier Franchini
+  description: Kibana installation
+  company: Data Essential
+
+  license: MIT
+
+  min_ansible_version: 2.9.6
+
+  galaxy_tags:
+    - elastic
+    - kibana
+
+dependencies: []

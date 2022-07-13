@@ -1,0 +1,43 @@
+---
+es_major_version: "7.x"
+kibana_server_name: "{{ ansible_hostname }}"
+
+kibana_server_port: 5601
+kibana_server_host: "0.0.0.0"
+kibana_elasticsearch_url: "http://localhost:9200"
+
+kibana_version: "7.5.1"
+
+kibana_package: "{{ ( 'kibana=' +  kibana_version ) if kibana_version is defined else 'kibana' }}"
+
+kibana_base_path: ""
+
+es_yum_repo: "https://artifacts.elastic.co/packages/{{ es_major_version }}/yum"
+es_yum_gpg: "https://artifacts.elastic.co/GPG-KEY-elasticsearch"
+es_yum_gpgcheck: "yes"
+
+es_apt_repo: "deb https://artifacts.elastic.co/packages/{{ es_major_version }}/apt stable main"
+es_apt_gpg: "{{ es_yum_gpg }}"
+
+# kibana_es_username: elastic
+# kibana_es_password: changeme
+
+kibana_ssl_enabled: false
+kibana_ssl_key: "/etc/kibana/kibana.key"
+kibana_ssl_certificate: "/etc/kibana/kibana.pem"
+
+kibana_es_ssl_enabled: false
+kibana_es_ssl_certificate_authorities: "{{ '/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem' if ( ansible_os_family == 'RedHat' ) else '/etc/ssl/certs/ca-certificates' }}"
+
+kibana_xpack_monitoring_enabled: false
+kibana_xpack_monitoring_es_url: "http://localhost:9200"
+# kibana_xpack_monitoring_es_username: elastic
+# kibana_xpack_monitoring_es_password: changeme
+
+# kibana_xpack_security_enabled: false
+# kibana_xpack_graph_enabled: false
+# kibana_xpack_ml_enabled: false
+
+kibana_plugin_bin: "/usr/share/kibana/bin/kibana-plugin"
+
+kibana_xpack_enable: "{{ (kibana_xpack_monitoring_enabled is defined and kibana_xpack_monitoring_enabled ) or ( kibana_xpack_security_enabled is defined and kibana_xpack_security_enabled ) or ( kibana_xpack_graph_enabled is defined and kibana_xpack_graph_enabled ) or ( kibana_xpack_ml_enabled is defined and kibana_xpack_ml_enabled ) }}"

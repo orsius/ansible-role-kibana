@@ -1,0 +1,92 @@
+server.port: {{ kibana_server_port }}
+server.host: {{ kibana_server_host }}
+
+{% if kibana_base_path == "" and es_major_version >= "7.x" %}
+# server.basePath: "{{ kibana_base_path }}"
+{% else %}
+server.basePath: "{{ kibana_base_path }}"
+{% endif %}
+
+# server.maxPayloadBytes: 1048576
+server.name: "{{ kibana_server_name }}"
+
+{% if es_major_version >= "7.x" %}
+elasticsearch.hosts: {{ kibana_elasticsearch_url }}
+{% else %}
+elasticsearch.url: {{ kibana_elasticsearch_url }}
+{% endif %}
+
+# elasticsearch.preserveHost: true
+#{% if es_major_version <= "7.x" %}
+#kibana.index: ".kibana"
+#{% endif %}
+
+# kibana.defaultAppId: "discover"
+
+{% if kibana_es_username is defined and kibana_es_password is defined %}
+elasticsearch.username: "{{ kibana_es_username }}"
+elasticsearch.password: "{{ kibana_es_password }}"
+{% endif %}
+
+{% if kibana_ssl_enabled %}
+server.ssl.enabled: true
+server.ssl.key: "{{ kibana_ssl_key }}"
+{%   if es_major_version == "5.x" %}
+server.ssl.cert: "{{ kibana_ssl_certificate }}"
+{%   else %}
+server.ssl.certificate: "{{ kibana_ssl_certificate }}"
+{% endif %}
+{% endif %}
+
+{% if kibana_es_ssl_enabled %}
+{%   if es_major_version == "5.x" %}
+elasticsearch.ssl.ca: "{{ kibana_es_ssl_certificate_authorities }}"
+{%   else %}
+elasticsearch.ssl.certificateAuthorities: [ "{{ kibana_es_ssl_certificate_authorities }}" ]
+# Fix HSTS Missing From HTTPS Server (RFC 6797) (142960)
+server.customResponseHeaders : {"Strict-Transport-Security":"max-age=31536000;includeSubdomains"}
+{%   endif %}
+{% endif %}
+
+# elasticsearch.pingTimeout: 1500
+# elasticsearch.requestTimeout: 30000
+
+# elasticsearch.customHeaders: {}
+# elasticsearch.shardTimeout: 0
+
+# elasticsearch.startupTimeout: 5000
+# pid.file: /var/run/kibana.pid
+# logging.dest: stdout
+# logging.silent: false
+# logging.quiet: false
+# logging.verbose: false
+
+# ops.interval: 5000
+# i18n.defaultlocale: "en"
+
+{% if kibana_xpack_monitoring_enabled %}
+xpack.monitoring.enabled: true
+{%   if es_major_version >= "7.x" %}
+xpack.monitoring.elasticsearch.hosts: "{{ kibana_xpack_monitoring_es_url }}"
+{%   else %}
+xpack.monitoring.elasticsearch.url: "{{ kibana_xpack_monitoring_es_url }}"
+{%   endif %}
+{%   if kibana_xpack_monitoring_es_username is defined and kibana_xpack_monitoring_es_password is defined %}
+xpack.monitoring.elasticsearch.username: "{{ kibana_xpack_monitoring_es_username }}"
+xpack.monitoring.elasticsearch.password: "{{ kibana_xpack_monitoring_es_password }}"
+{%   endif %}
+{% endif %}
+
+{% if kibana_xpack_security_enabled is defined %}
+xpack.security.enabled: {{ "true" if ( kibana_xpack_security_enabled | bool) else "false" }}
+{% endif %}
+{% if kibana_xpack_graph_enabled is defined %}
+xpack.graph.enabled: {{ "true" if ( kibana_xpack_graph_enabled | bool ) else "false" }}
+{% endif %}
+{% if kibana_xpack_ml_enabled is defined %}
+xpack.ml.enabled: {{ "true" if ( kibana_xpack_ml_enabled | bool ) else "false" }}
+{% endif %}
+
+{% if kibana_config is defined %}
+{{ kibana_config | to_nice_yaml }}
+{% endif %}

@@ -1,0 +1,54 @@
+---
+- include: setup-RedHat.yml
+  when: ansible_os_family == 'RedHat'
+
+- include: setup-Debian.yml
+  when: ansible_os_family == 'Debian'
+
+- name: "installing {{ kibana_package | regex_replace('=', '-') }} - RedHat"
+  yum:
+    name: "{{ kibana_package | regex_replace('=', '-') }}"
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: "installing {{ kibana_package }} - Debian"
+  apt:
+    name: "{{ kibana_package }}"
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: check x-pack plugin presence
+  shell: "{{ kibana_plugin_bin }} list | grep -q '^x-pack$'"
+  register: _kibana_plugin_xpack
+  failed_when: False
+  changed_when: False
+  become_user: kibana
+  when: 
+    - kibana_xpack_enable | bool
+    - kibana_version is version('6.3', '<')
+
+- name: install x-pack plugin
+  shell: "{{ kibana_plugin_bin }} install x-pack"
+  become_user: kibana
+  when:
+    - kibana_version is version('6.3', '<')
+    - kibana_xpack_enable
+    - _kibana_plugin_xpack is defined
+    - "{{ 'rc' in _kibana_plugin_xpack }}"
+    - _kibana_plugin_xpack.rc != 0
+  notify: restart kibana
+
+- name: Ensure Kibana is started and enabled at boot.
+  service:
+    name: kibana
+    state: started
+    enabled: yes
+
+- name: Copy Kibana configuration.
+  template:
+    src: kibana.yml.j2
+    dest: "/etc/kibana/kibana.yml"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart kibana
